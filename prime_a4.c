@@ -124,6 +124,9 @@ int main(int argc, char const *argv[])
 
     int *thread_ids = malloc(sizeof(int) * thread_count);
 
+    printf("Programm mit %d Clients starten:\n", thread_count);
+
+
     // Initialisieren von Mutexes und Bedingungsvariablen
     int err;
     for (int i = 0; i < ARRAY_SIZE; i++) {
