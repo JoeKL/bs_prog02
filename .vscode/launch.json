@@ -1,11 +1,11 @@
 {
     "configurations": [
         {
-            "name": "BS: C: gcc build and debug active file",
+            "name": "BS: C: gcc build with args",
             "type": "cppdbg",
             "request": "launch",
             "program": "${fileDirname}/${fileBasenameNoExtension}",
-            "args": [],
+            "args": ["4"],
             "stopAtEntry": false,
             "cwd": "${fileDirname}",
             "environment": [],
