@@ -39,8 +39,8 @@ void *print_prime(){
         printf("CLIENT: %d is prime in [%d]!\n", prime_array[client_array_index], client_array_index);
         prime_array[client_array_index] = 0;
 
-        pthread_cond_signal(&prime_read_cond); // Signal an den Server-Thread, dass die Zahl gelesen wurde
         pthread_mutex_unlock(&array_mutexes[client_array_index]); // unlocke resource[index]
+        pthread_cond_signal(&prime_read_cond); // Signal an den Server-Thread, dass die Zahl gelesen wurde
 
         client_array_index = (client_array_index + 1 >= ARRAY_SIZE) ? 0 : client_array_index + 1; // wenn next nächstes element größer ARRAY_SIZE -> 0 
         sleep(2);
@@ -64,8 +64,8 @@ void *find_primes(){
             prime_array[server_array_index] = i;
             printf("SERVER: saving %d in [%d]\n", i, server_array_index); 
 
-            pthread_cond_signal(&prime_written_cond); // Signal an den Client-Thread, dass eine neue Zahl geschrieben wurde
             pthread_mutex_unlock(&array_mutexes[server_array_index]); // unlocke resource[index]
+            pthread_cond_signal(&prime_written_cond); // Signal an den Client-Thread, dass eine neue Zahl geschrieben wurde
 
             server_array_index = (server_array_index + 1 >= ARRAY_SIZE) ? 0 : server_array_index + 1; // wenn next nächstes element größer ARRAY_SIZE -> 0 
             sleep(1);
