@@ -67,25 +67,25 @@ void *find_primes(){
 // int main(int argc, char const *argv[])
 int main()
 {
-    int init_result;
+    int err;
 
     // Initialisieren des Mutex
-    init_result = pthread_mutex_init(&latest_prime_mutex, NULL);
-    if (init_result != 0) {
+    err = pthread_mutex_init(&latest_prime_mutex, NULL);
+    if (err != 0) {
         perror("Failed to initialize mutex");
         return EXIT_FAILURE;
     }
 
     // Initialisieren der Bedingungsvariablen
-    init_result = pthread_cond_init(&prime_written_cond, NULL);
-    if (init_result != 0) {
+    err = pthread_cond_init(&prime_written_cond, NULL);
+    if (err != 0) {
         perror("Failed to initialize condition variable");
         pthread_mutex_destroy(&latest_prime_mutex);
         return EXIT_FAILURE;
     }
 
-    init_result = pthread_cond_init(&prime_read_cond, NULL);
-    if (init_result != 0) {
+    err = pthread_cond_init(&prime_read_cond, NULL);
+    if (err != 0) {
         perror("Failed to initialize condition variable");
         pthread_cond_destroy(&prime_written_cond);
         pthread_mutex_destroy(&latest_prime_mutex);

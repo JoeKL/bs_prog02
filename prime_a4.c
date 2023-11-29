@@ -124,35 +124,68 @@ int main(int argc, char const *argv[])
 
     int *thread_ids = malloc(sizeof(int) * thread_count);
 
-    // init von cond und mutex
-    for (int i = 0; i < ARRAY_SIZE; i++) 
-    {
-        pthread_mutex_init(&array_mutexes[i], NULL);
-        pthread_cond_init(&prime_written_cond[i], NULL);
-        pthread_cond_init(&prime_read_cond[i], NULL);   
+    // Initialisieren von Mutexes und Bedingungsvariablen
+    int err;
+    for (int i = 0; i < ARRAY_SIZE; i++) {
+        if ((err = pthread_mutex_init(&array_mutexes[i], NULL)) != 0) {
+            perror("Failed to init mutex");
+            return EXIT_FAILURE;
+        }
+        if ((err = pthread_cond_init(&prime_written_cond[i], NULL)) != 0) {
+            perror("Failed to init condition variable");
+            return EXIT_FAILURE;
+        }
+        if ((err = pthread_cond_init(&prime_read_cond[i], NULL)) != 0) {
+            perror("Failed to init condition variable");
+            return EXIT_FAILURE;
+        }
     }
-    pthread_cond_init(&ending_cond, NULL); 
+    if ((err = pthread_cond_init(&ending_cond, NULL)) != 0) {
+            perror("Failed to init ending_cond");
+            return EXIT_FAILURE;
+        }
 
     // thread identifier für server und client
     pthread_t server, listener_thread;
     pthread_t *clients = malloc(sizeof(pthread_t) * thread_count); // Dynamisches Array für Client-Threads
 
-    //create thread listener_thread mit funktion "find_primes"
-    pthread_create(&listener_thread, NULL, keyboard_listener, NULL); 
+    // Erstellen des Listener-Threads
+    if (pthread_create(&listener_thread, NULL, keyboard_listener, NULL) != 0) {
+        perror("Failed to create listener thread");
+        return EXIT_FAILURE;
+    }
     
-    //create thread server mit funktion "find_primes"
-    pthread_create(&server, NULL, find_primes, NULL);
-
+    // Erstellen des Server-Threads
+    if (pthread_create(&server, NULL, find_primes, NULL) != 0) {
+        perror("Failed to create server thread");
+        return EXIT_FAILURE;
+    }
+    
     for (int i = 0; i < thread_count; i++) {
         thread_ids[i] = i;
-        pthread_create(&clients[i], NULL, print_prime, &thread_ids[i]); // Erstellt jeden Client-Thread
+        if(pthread_create(&clients[i], NULL, print_prime, &thread_ids[i]) != 0){ // Erstellt jeden Client-Thread
+            perror("Failed to create client thread");
+            return EXIT_FAILURE;
+        }
     }
 
-    pthread_join(listener_thread, NULL);
-    pthread_join(server, NULL);
+    // Warten auf die Beendigung des Client-Threads
+    if (pthread_join(listener_thread, NULL) != 0) {
+        perror("Failed to join client thread");
+        return EXIT_FAILURE;
+    }
+
+    // Warten auf die Beendigung des Server-Threads
+    if (pthread_join(server, NULL) != 0) {
+        perror("Failed to join server thread");
+        return EXIT_FAILURE;
+    }
 
     for (int i = 0; i < thread_count; i++) {
-        pthread_join(clients[i], NULL); // Wartet auf jeden Client-Thread
+        if(pthread_join(clients[i], NULL) != 0){ // Wartet auf jeden Client-Thread
+            perror("Failed to join client thread");
+            return EXIT_FAILURE;
+        }
     }
 
     free(clients); // Gibt das dynamische Array frei
