@@ -67,23 +67,59 @@ void *find_primes(){
 // int main(int argc, char const *argv[])
 int main()
 {
-    // init von cond und mutex
-    pthread_mutex_init(&latest_prime_mutex, NULL);
-    pthread_cond_init(&prime_written_cond, NULL);
-    pthread_cond_init(&prime_read_cond, NULL);    
+    int init_result;
+
+    // Initialisieren des Mutex
+    init_result = pthread_mutex_init(&latest_prime_mutex, NULL);
+    if (init_result != 0) {
+        perror("Failed to initialize mutex");
+        return EXIT_FAILURE;
+    }
+
+    // Initialisieren der Bedingungsvariablen
+    init_result = pthread_cond_init(&prime_written_cond, NULL);
+    if (init_result != 0) {
+        perror("Failed to initialize condition variable");
+        pthread_mutex_destroy(&latest_prime_mutex);
+        return EXIT_FAILURE;
+    }
+
+    init_result = pthread_cond_init(&prime_read_cond, NULL);
+    if (init_result != 0) {
+        perror("Failed to initialize condition variable");
+        pthread_cond_destroy(&prime_written_cond);
+        pthread_mutex_destroy(&latest_prime_mutex);
+        return EXIT_FAILURE;
+    }
+  
 
     // thread identifier für server und client
     pthread_t server, client; 
     
-    //create thread server mit funktion "find_primes"
-    pthread_create(&server, NULL, find_primes, NULL);
+    // Erstellen des Server-Threads
+    if (pthread_create(&server, NULL, find_primes, NULL) != 0) {
+        perror("Failed to create server thread");
+        return EXIT_FAILURE;
+    }
 
-    //create thread client mit funktion "print_prime"
-    pthread_create(&client, NULL, print_prime, NULL);
+    // Erstellen des Client-Threads
+    if (pthread_create(&client, NULL, print_prime, NULL) != 0) {
+        perror("Failed to create client thread");
+        return EXIT_FAILURE;
+    }
     
     // Code ab hier ist effektiv nutzlos, da server und client in dauerschleife sind.
-    pthread_join(client, NULL);
-    pthread_join(server, NULL);
+    // Warten auf die Beendigung des Client-Threads
+    if (pthread_join(client, NULL) != 0) {
+        perror("Failed to join client thread");
+        return EXIT_FAILURE;
+    }
+
+    // Warten auf die Beendigung des Server-Threads
+    if (pthread_join(server, NULL) != 0) {
+        perror("Failed to join server thread");
+        return EXIT_FAILURE;
+    }
 
 
     // aufräumen der cond und mutex
